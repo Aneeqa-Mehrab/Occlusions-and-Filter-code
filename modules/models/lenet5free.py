@@ -2,27 +2,18 @@ import torch
 import torch.nn as nn
 
 
-class LeNet_5_filocl(nn.Module):
+class LeNet_5_free(nn.Module):
 
-  def __init__(self, filters, stripe_width, name='filters'):
+  def __init__(self, n_filters):
     '''
-    name is string with value 'filters' or 'random'
+    Free to train filters
     '''
     super().__init__()
 
-    assert (name == 'filters' or name == 'random'), "Invalid model name."
-    self.name = name
-    
-    assert len(filters.shape) == 4, "Filters don't have the right shape."
-    self.kernel_size = filters[0].shape[-1]
-    self.n_filters = len(filters)
-    self.stripe_width = stripe_width
-    # Istantiate the filters layer
-    self.filters = filters
-
-
+    self.n_filters= n_filters
     self.tanh = nn.Tanh()
-    self.c1 = nn.Conv2d(len(filters),6,kernel_size=5, stride=1, padding=0)
+    self.c0 = nn.Conv2d(1,n_filters,kernel_size=7, stride=1, padding=3)
+    self.c1 = nn.Conv2d(n_filters,6,kernel_size=5, stride=1, padding=0)
     self.s2 = nn.AvgPool2d(kernel_size=2, stride=2)
 
     self.c3_0 = nn.Conv2d(3,1,kernel_size=5,stride=1)
@@ -57,14 +48,8 @@ class LeNet_5_filocl(nn.Module):
 
   def forward(self,x):
 
-    out = nn.functional.conv2d(
-      x, 
-      self.filters,
-      padding=self.kernel_size//2
-    )
-
+    out = self.c0(x)
     out = self.tanh(out)
-
     out = self.c1(out)
     out = self.tanh(out)
     out = self.s2(out)
@@ -109,7 +94,4 @@ class LeNet_5_filocl(nn.Module):
 
 
   def __str__(self):
-    if self.name=='filters':
-      return f'LeNet_5_w{self.kernel_size}_sw{self.stripe_width}'
-    if self.name=='random':
-      return f'LeNet_5_w{self.kernel_size}_sw{self.stripe_width}_random'
+      return f'LeNet_5_free_n{self.n_filters}'
